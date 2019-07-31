@@ -3,6 +3,7 @@ package com.nh.php.curl.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.security.cert.X509Certificate;
@@ -58,13 +59,14 @@ public class CertManager {
 
     public static Map showCertInfo4file(String cerPath) {
         Map infoMap = new HashMap();
+        InputStream inStream = null;
         try {
             //读取证书文件
             URL url = CertManager.class.getClassLoader().getResource(cerPath);
             URI uri = url.toURI();
 
             File file = new File(uri);
-            InputStream inStream = new FileInputStream(file);
+            inStream = new FileInputStream(file);
             //创建X509工厂类
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             //创建证书对象
@@ -74,6 +76,15 @@ public class CertManager {
 
         } catch (Exception e) {
             logger.error("show cert error", e);
+        } finally {
+            if(inStream!=null){
+                try {
+                    inStream.close();
+                    inStream=null;
+                } catch (IOException e) {
+                    logger.error("show cert error", e);
+                }
+            }
         }
         return infoMap;
     }

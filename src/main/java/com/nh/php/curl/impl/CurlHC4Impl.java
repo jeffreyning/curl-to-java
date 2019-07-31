@@ -134,6 +134,7 @@ public class CurlHC4Impl extends CurlLib {
     }
 
     private SSLContext getSSLContext(HC4Pointer pointer) {
+        FileInputStream sslStream=null;
         try {
             SSLContext sslContext = null;
             KeyManager[] keyManagers = null;
@@ -149,15 +150,17 @@ public class CurlHC4Impl extends CurlLib {
                     kstore = KeyStore.getInstance("PKCS12");
                 }
 
-                String sslKeyStorePassword = "";
-                if (pointer.CURLOPT_SSLKEYPASSWD != null) {
-                    sslKeyStorePassword = pointer.CURLOPT_SSLKEYPASSWD;
+                String sslKeyStorePw = "";
+                if(pointer.CURLOPT_SSLKEYPASSWD!=null) {
+                    sslKeyStorePw = pointer.CURLOPT_SSLKEYPASSWD;
                 }
+
                 KeyManagerFactory keyFactory = KeyManagerFactory.getInstance("sunx509");
                 String sslKeyStorePath = "";
                 sslKeyStorePath = pointer.CURLOPT_SSLKEY;
-                kstore.load(new FileInputStream(sslKeyStorePath), sslKeyStorePassword.toCharArray());
-                keyFactory.init(kstore, sslKeyStorePassword.toCharArray());
+                sslStream=new FileInputStream(sslKeyStorePath);
+                kstore.load(sslStream, sslKeyStorePw.toCharArray());
+                keyFactory.init(kstore, sslKeyStorePw.toCharArray());
                 keyManagers = keyFactory.getKeyManagers();
             }
 
@@ -179,6 +182,15 @@ public class CurlHC4Impl extends CurlLib {
         } catch (Exception e) {
             logger.error("create SSLContext error", e);
             return null;
+        } finally {
+            if(sslStream!=null){
+                try {
+                    sslStream.close();
+                    sslStream=null;
+                } catch (IOException e) {
+                    logger.error("create SSLContext error", e);
+                }
+            }
         }
 
     }
